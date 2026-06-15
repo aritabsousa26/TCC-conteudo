@@ -20,6 +20,13 @@ export default async (req) => {
   if (method === "POST") {
     try {
       const posts = await req.json();
+      // Não sobrescreve com lista vazia por segurança
+      if (!Array.isArray(posts) || posts.length === 0) {
+        const existing = await store.get("posts", { type: "json" });
+        if (existing && existing.length > 0) {
+          return Response.json({ ok: true, skipped: true });
+        }
+      }
       await store.setJSON("posts", posts);
       return Response.json({ ok: true });
     } catch (e) {
