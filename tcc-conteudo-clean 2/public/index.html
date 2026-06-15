@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Custard Cookies — Calendário de Conteúdo</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --sidebar-bg: #1a1612;
+    --sidebar-text: #e8dfd0;
+    --sidebar-muted: #7a6e62;
+    --sidebar-active: #c8a96e;
+    --sidebar-hover: #2a241e;
+    --accent: #c8a96e;
+    --accent-light: #f5edd9;
+    --bg: #f7f4ef;
+    --surface: #ffffff;
+    --text: #1a1612;
+    --text-muted: #7a6e62;
+    --border: #e8e0d4;
+    --green: #2d6a4f;
+    --green-bg: #e8f5ee;
+    --red: #9b2335;
+    --red-bg: #fceaec;
+    --amber: #92620a;
+    --amber-bg: #fdf3e0;
+    --blue: #1a4f7a;
+    --blue-bg: #e6f0fa;
+    --pink: #c8547a;
+    --pink-bg: #fceef3;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .sidebar {
+    width: 210px;
+    min-width: 210px;
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .sidebar-brand {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid #2a241e;
+  }
+
+  .sidebar-brand .name {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    color: var(--sidebar-text);
+    line-height: 1.3;
+    font-weight: 600;
+  }
+
+  .sidebar-brand .sub {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--sidebar-muted);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .sidebar-nav { flex: 1; padding: 16px 0; }
+
+  .nav-section {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--sidebar-muted);
+    text-transform: uppercase;
+    padding: 14px 24px 6px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 24px;
+    color: var(--sidebar-muted);
+    cursor: pointer;
+    font-size: 13.5px;
+    transition: background 0.15s, color 0.15s;
+    border-left: 3px solid transparent;
+    user-select: none;
+  }
+
+  .nav-item:hover { background: var(--sidebar-hover); color: var(--sidebar-text); }
+  .nav-item.active { color: var(--sidebar-active); border-left-color: var(--sidebar-active); background: #221e18; }
+  .nav-item .icon { font-size: 15px; }
+
+  .sync-indicator {
+    padding: 12px 24px;
+    font-size: 11px;
+    color: var(--sidebar-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-top: 1px solid #2a241e;
+    margin-top: auto;
+  }
+
+  .sync-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--sidebar-muted);
+    flex-shrink: 0;
+  }
+
+  .sync-dot.ok { background: #2d6a4f; }
+  .sync-dot.loading { background: var(--accent); animation: pulse 1s infinite; }
+  .sync-dot.error { background: var(--red); }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px 36px;
+  }
+
+  @media (max-width: 768px) {
+    body { flex-direction: column; height: auto; overflow: auto; }
+    .sidebar { width: 100%; min-width: unset; height: auto; flex-direction: row; flex-wrap: wrap; }
+    .sidebar-brand { width: 100%; }
+    .sidebar-nav { display: flex; flex-direction: row; padding: 8px; gap: 4px; }
+    .nav-section { display: none; }
+    .nav-item { padding: 8px 14px; border-left: none; border-bottom: 3px solid transparent; font-size: 12px; }
+    .nav-item.active { border-left-color: transparent; border-bottom-color: var(--sidebar-active); }
+    .sync-indicator { padding: 8px 16px; }
+    .main { padding: 20px 16px; }
+    .form-row { grid-template-columns: 1fr; }
+    .calendar-week { grid-template-columns: repeat(4, 1fr); }
+    .posts-grid { grid-template-columns: 1fr; }
+    .page-header { flex-direction: column; align-items: flex-start; }
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .page-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .metric-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    border-top: 3px solid var(--accent);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+
+  .metric-card.green { border-top-color: var(--green); }
+  .metric-card.pink { border-top-color: var(--pink); }
+  .metric-card.amber { border-top-color: var(--amber); }
+
+  .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 6px; }
+  .metric-value { font-size: 28px; font-weight: 500; color: var(--text); line-height: 1; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.15s, transform 0.1s;
+    white-space: nowrap;
+  }
+
+  .btn:active { transform: scale(0.98); }
+  .btn:hover { opacity: 0.88; }
+  .btn-primary { background: var(--accent); color: #1a1612; }
+  .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid #f3c0c7; }
+
+  .posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+
+  .post-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: box-shadow 0.2s;
+  }
+
+  .post-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+
+  .post-card-header {
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .post-date { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+
+  .post-type-badge {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .type-reels { background: var(--pink-bg); color: var(--pink); }
+  .type-carrossel { background: var(--blue-bg); color: var(--blue); }
+  .type-imagem { background: var(--amber-bg); color: var(--amber); }
+  .type-story { background: var(--green-bg); color: var(--green); }
+
+  .post-card-body { padding: 16px 18px; }
+
+  .post-tema {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .post-descricao { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px; }
+
+  .post-caption-box {
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 12.5px;
+    color: var(--text);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    min-height: 60px;
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
+    max-height: 160px;
+    overflow-y: auto;
+  }
+
+  .post-caption-box.empty { color: var(--text-muted); font-style: italic; }
+
+  .post-card-footer {
+    padding: 12px 18px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .status-badge {
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .status-ideia { background: #f0eee8; color: var(--text-muted); }
+  .status-rascunho { background: var(--amber-bg); color: var(--amber); }
+  .status-pronto { background: var(--blue-bg); color: var(--blue); }
+  .status-publicado { background: var(--green-bg); color: var(--green); }
+
+  .post-actions { display: flex; gap: 6px; align-items: center; }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border-radius: var(--radius);
+    width: 560px;
+    max-width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 28px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--text);
+  }
+
+  .form-group { margin-bottom: 16px; }
+
+  .form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    padding: 10px 13px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13.5px;
+    color: var(--text);
+    background: var(--bg);
+    transition: border 0.15s;
+    outline: none;
+  }
+
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+  .form-textarea { min-height: 90px; resize: vertical; line-height: 1.5; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .ai-box {
+    background: linear-gradient(135deg, #1a1612 0%, #2a241e 100%);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    margin-bottom: 20px;
+    border: 1px solid #3a3028;
+  }
+
+  .ai-box-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 6px; font-weight: 500; }
+  .ai-box-desc { font-size: 13px; color: #a09080; margin-bottom: 14px; line-height: 1.5; }
+
+  .ai-loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--accent);
+    font-size: 13px;
+    padding: 10px 0;
+  }
+
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #3a3028;
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .calendar-week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .cal-day {
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    padding: 10px;
+    min-height: 90px;
+    border: 1px solid var(--border);
+  }
+
+  .cal-day.today { border-color: var(--accent); }
+  .cal-day-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 2px; }
+  .cal-day-num { font-size: 17px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+  .cal-day.today .cal-day-num { color: var(--accent); }
+
+  .cal-post-chip {
+    font-size: 10px;
+    padding: 3px 7px;
+    border-radius: 4px;
+    margin-bottom: 3px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    display: block;
+  }
+
+  .caption-edit-area {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--bg);
+    resize: vertical;
+    min-height: 140px;
+    line-height: 1.6;
+    outline: none;
+  }
+
+  .caption-edit-area:focus { border-color: var(--accent); }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #1a1612;
+    color: #e8dfd0;
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    z-index: 200;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+    max-width: 280px;
+  }
+
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); grid-column: 1 / -1; }
+  .empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  .loading-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+    z-index: 300;
+  }
+
+  .loading-screen .spinner { width: 28px; height: 28px; border-color: var(--border); border-top-color: var(--accent); }
+  .loading-screen p { font-size: 14px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-screen" id="loading-screen">
+  <div style="font-family:'Playfair Display',serif;font-size:20px;color:var(--text);">The Custard Cookies</div>
+  <div class="spinner"></div>
+  <p>A carregar conteúdo...</p>
+</div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="name">The Custard Cookies</div>
+    <div class="sub">Conteúdo & Instagram</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Vistas</div>
+    <div class="nav-item active" onclick="showPage('dashboard', this)">
+      <span class="icon">📊</span> Dashboard
+    </div>
+    <div class="nav-item" onclick="showPage('calendario', this)">
+      <span class="icon">📅</span> Calendário
+    </div>
+    <div class="nav-item" onclick="showPage('posts', this)">
+      <span class="icon">🍪</span> Posts
+    </div>
+  </nav>
+  <div class="sync-indicator">
+    <div class="sync-dot" id="sync-dot"></div>
+    <span id="sync-label">A ligar...</span>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- DASHBOARD -->
+  <section class="page active" id="page-dashboard">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Dashboard</div>
+        <div class="page-subtitle">Resumo do calendário editorial</div>
+      </div>
+      <button class="btn btn-primary" onclick="openNovoPost()">+ Novo Post</button>
+    </div>
+    <div class="metrics" id="dash-metrics"></div>
+    <div style="background:var(--surface);border-radius:var(--radius);padding:22px 24px;border:1px solid var(--border);">
+      <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:600;margin-bottom:16px;">Próximos posts</div>
+      <div id="dash-proximos"></div>
+    </div>
+  </section>
+
+  <!-- CALENDÁRIO -->
+  <section class="page" id="page-calendario">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Calendário</div>
+        <div class="page-subtitle" id="cal-semana-label"></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-ghost btn-sm" onclick="navegarSemana(-1)">← Anterior</button>
+        <button class="btn btn-ghost btn-sm" onclick="navegarSemana(1)">Próxima →</button>
+        <button class="btn btn-primary btn-sm" onclick="openNovoPost()">+ Novo Post</button>
+      </div>
+    </div>
+    <div class="calendar-week" id="cal-grid"></div>
+  </section>
+
+  <!-- POSTS -->
+  <section class="page" id="page-posts">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Posts</div>
+        <div class="page-subtitle">Todos os conteúdos planeados</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <select class="form-select" style="width:auto;padding:8px 12px;font-size:13px;" onchange="filtrarPosts(this.value)">
+          <option value="">Todos os estados</option>
+          <option value="ideia">Ideia</option>
+          <option value="rascunho">Rascunho</option>
+          <option value="pronto">Pronto</option>
+          <option value="publicado">Publicado</option>
+        </select>
+        <button class="btn btn-primary" onclick="openNovoPost()">+ Novo Post</button>
+      </div>
+    </div>
+    <div class="posts-grid" id="posts-grid"></div>
+  </section>
+
+</main>
+
+<!-- MODAL NOVO/EDITAR POST -->
+<div class="modal-overlay" id="modal-post">
+  <div class="modal">
+    <div class="modal-title" id="modal-post-title">Novo Post</div>
+
+    <div class="ai-box">
+      <div class="ai-box-title">✨ Gerar caption com IA</div>
+      <div class="ai-box-desc">Preenche o tema e descrição abaixo e carrega em gerar — a IA escreve no tom da TCC.</div>
+      <button class="btn btn-primary btn-sm" onclick="gerarCaption()" id="btn-gerar">✨ Gerar caption</button>
+      <div class="ai-loading" id="ai-loading" style="display:none;">
+        <div class="spinner"></div> A gerar caption...
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Data</label>
+        <input type="date" class="form-input" id="f-data" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipo</label>
+        <select class="form-select" id="f-tipo">
+          <option value="reels">Reels</option>
+          <option value="carrossel">Carrossel</option>
+          <option value="imagem">Imagem</option>
+          <option value="story">Story</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Tema / Título</label>
+      <input type="text" class="form-input" id="f-tema" placeholder="Ex: Apresentação Cornetto de Morango" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Descrição (contexto para a IA)</label>
+      <textarea class="form-textarea" id="f-descricao" placeholder="Descreve o produto, evento, momento..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Caption</label>
+      <textarea class="caption-edit-area" id="f-caption" placeholder="Aparece aqui após gerar, ou escreve diretamente..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Estado</label>
+      <select class="form-select" id="f-estado">
+        <option value="ideia">💡 Ideia</option>
+        <option value="rascunho">✏️ Rascunho</option>
+        <option value="pronto">✅ Pronto</option>
+        <option value="publicado">🚀 Publicado</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Notas internas</label>
+      <textarea class="form-textarea" id="f-notas" placeholder="Fotos a usar, referências visuais..." style="min-height:60px;"></textarea>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-post')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarPost()">Guardar Post</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VER POST -->
+<div class="modal-overlay" id="modal-ver">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+      <div class="modal-title" id="ver-tema" style="margin-bottom:0;flex:1;padding-right:12px;"></div>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-ver')">✕</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center;">
+      <span id="ver-data" style="font-size:13px;color:var(--text-muted);"></span>
+      <span id="ver-tipo-badge" class="post-type-badge"></span>
+      <span id="ver-estado-badge" class="status-badge"></span>
+    </div>
+    <div style="font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:8px;">Caption</div>
+    <div class="post-caption-box" id="ver-caption" style="max-height:280px;"></div>
+    <div id="ver-notas-wrap" style="display:none;">
+      <div style="font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:8px;margin-top:16px;">Notas</div>
+      <div class="post-caption-box" id="ver-notas"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:20px;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="copiarCaption()">📋 Copiar caption</button>
+      <button class="btn btn-ghost" onclick="editarPostAtual()">✏️ Editar</button>
+      <button class="btn btn-danger btn-sm" onclick="eliminarPostAtual()">🗑 Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let posts = [];
+let editingId = null;
+let currentPostId = null;
+let calOffset = 0;
+let filtroAtual = '';
+let saving = false;
+
+// ===================== SYNC =====================
+function setSyncStatus(status, label) {
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  dot.className = 'sync-dot ' + status;
+  lbl.textContent = label;
+}
+
+async function carregarPosts() {
+  setSyncStatus('loading', 'A carregar...');
+  try {
+    const res = await fetch('/api/posts');
+    const data = await res.json();
+    posts = Array.isArray(data) ? data : [];
+    setSyncStatus('ok', 'Sincronizado');
+    return true;
+  } catch {
+    setSyncStatus('error', 'Erro de ligação');
+    return false;
+  }
+}
+
+async function guardarRemoto() {
+  if (saving) return;
+  saving = true;
+  setSyncStatus('loading', 'A guardar...');
+  try {
+    await fetch('/api/posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(posts)
+    });
+    setSyncStatus('ok', 'Guardado ✓');
+  } catch {
+    setSyncStatus('error', 'Erro ao guardar');
+  }
+  saving = false;
+}
+
+// Auto-refresh a cada 30 segundos para apanhar alterações do outro utilizador
+setInterval(async () => {
+  if (!saving) {
+    await carregarPosts();
+    renderAll();
+  }
+}, 30000);
+
+// ===================== NAV =====================
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'calendario') renderCalendario();
+  if (id === 'posts') renderPosts();
+}
+
+// ===================== MODAL =====================
+function openNovoPost(data) {
+  editingId = null;
+  document.getElementById('modal-post-title').textContent = 'Novo Post';
+  document.getElementById('f-data').value = data || '';
+  document.getElementById('f-tipo').value = 'reels';
+  document.getElementById('f-tema').value = '';
+  document.getElementById('f-descricao').value = '';
+  document.getElementById('f-caption').value = '';
+  document.getElementById('f-estado').value = 'ideia';
+  document.getElementById('f-notas').value = '';
+  document.getElementById('modal-post').classList.add('open');
+}
+
+function openEditarPost(id) {
+  const p = posts.find(x => x.id === id);
+  if (!p) return;
+  editingId = id;
+  document.getElementById('modal-post-title').textContent = 'Editar Post';
+  document.getElementById('f-data').value = p.data || '';
+  document.getElementById('f-tipo').value = p.tipo || 'reels';
+  document.getElementById('f-tema').value = p.tema || '';
+  document.getElementById('f-descricao').value = p.descricao || '';
+  document.getElementById('f-caption').value = p.caption || '';
+  document.getElementById('f-estado').value = p.estado || 'ideia';
+  document.getElementById('f-notas').value = p.notas || '';
+  closeModal('modal-ver');
+  document.getElementById('modal-post').classList.add('open');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+async function guardarPost() {
+  const data = {
+    id: editingId || gerarId(),
+    data: document.getElementById('f-data').value,
+    tipo: document.getElementById('f-tipo').value,
+    tema: document.getElementById('f-tema').value.trim(),
+    descricao: document.getElementById('f-descricao').value.trim(),
+    caption: document.getElementById('f-caption').value.trim(),
+    estado: document.getElementById('f-estado').value,
+    notas: document.getElementById('f-notas').value.trim(),
+    criadoEm: editingId ? (posts.find(x=>x.id===editingId)?.criadoEm || Date.now()) : Date.now()
+  };
+  if (!data.tema) { showToast('Adiciona um tema ao post'); return; }
+  if (editingId) {
+    posts = posts.map(p => p.id === editingId ? data : p);
+  } else {
+    posts.push(data);
+  }
+  closeModal('modal-post');
+  renderAll();
+  showToast('Post guardado ✓');
+  await guardarRemoto();
+}
+
+// ===================== VER POST =====================
+function verPost(id) {
+  const p = posts.find(x => x.id === id);
+  if (!p) return;
+  currentPostId = id;
+  document.getElementById('ver-tema').textContent = p.tema;
+  document.getElementById('ver-data').textContent = p.data ? formatData(p.data) : 'Sem data';
+  const tipoBadge = document.getElementById('ver-tipo-badge');
+  tipoBadge.textContent = p.tipo;
+  tipoBadge.className = 'post-type-badge type-' + p.tipo;
+  const estadoBadge = document.getElementById('ver-estado-badge');
+  estadoBadge.textContent = estadoLabel(p.estado);
+  estadoBadge.className = 'status-badge status-' + p.estado;
+  const captionBox = document.getElementById('ver-caption');
+  if (p.caption) {
+    captionBox.textContent = p.caption;
+    captionBox.classList.remove('empty');
+  } else {
+    captionBox.textContent = 'Sem caption ainda — edita o post e gera uma!';
+    captionBox.classList.add('empty');
+  }
+  const notasWrap = document.getElementById('ver-notas-wrap');
+  if (p.notas) {
+    document.getElementById('ver-notas').textContent = p.notas;
+    notasWrap.style.display = 'block';
+  } else {
+    notasWrap.style.display = 'none';
+  }
+  document.getElementById('modal-ver').classList.add('open');
+}
+
+function editarPostAtual() { openEditarPost(currentPostId); }
+
+async function eliminarPostAtual() {
+  if (!confirm('Tens a certeza que queres eliminar este post?')) return;
+  posts = posts.filter(p => p.id !== currentPostId);
+  closeModal('modal-ver');
+  renderAll();
+  showToast('Post eliminado');
+  await guardarRemoto();
+}
+
+function copiarCaption() {
+  const p = posts.find(x => x.id === currentPostId);
+  if (!p || !p.caption) { showToast('Não há caption para copiar'); return; }
+  navigator.clipboard.writeText(p.caption).then(() => showToast('Caption copiada! ✓'));
+}
+
+// ===================== STATUS CYCLE =====================
+async function ciclarEstado(id) {
+  const ordem = ['ideia', 'rascunho', 'pronto', 'publicado'];
+  const p = posts.find(x => x.id === id);
+  if (!p) return;
+  p.estado = ordem[(ordem.indexOf(p.estado) + 1) % ordem.length];
+  renderAll();
+  showToast('Estado: ' + estadoLabel(p.estado));
+  await guardarRemoto();
+}
+
+// ===================== AI CAPTION =====================
+async function gerarCaption() {
+  const tema = document.getElementById('f-tema').value.trim();
+  const descricao = document.getElementById('f-descricao').value.trim();
+  const tipo = document.getElementById('f-tipo').value;
+  const data = document.getElementById('f-data').value;
+
+  if (!tema) { showToast('Adiciona um tema primeiro'); return; }
+
+  document.getElementById('btn-gerar').style.display = 'none';
+  document.getElementById('ai-loading').style.display = 'flex';
+
+  const prompt = `És o copywriter da marca The Custard Cookies (TCC), uma marca portuguesa de cookies americanas recheadas, feitas à mão em Portugal.
+
+Tom da marca: fun, leve, próximo e pessoal. Usa humor com naturalidade, sem forçar. Comunicação maioritariamente em português de Portugal. Usa emojis com moderação mas com personalidade. Inclui sempre um CTA no final (ex: encomendas no link da bio).
+
+Cria uma caption para Instagram para o seguinte post:
+- Tipo: ${tipo}
+- Data: ${data || 'a definir'}
+- Tema: ${tema}
+- Contexto: ${descricao || 'sem contexto adicional'}
+
+Responde APENAS com a caption, sem títulos, sem explicações, sem introdução. Pronta para copiar e colar.`;
+
+  try {
+    const response = await fetch('/api/gerar-caption', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data_res = await response.json();
+    const caption = data_res.content?.map(c => c.text || '').join('').trim();
+    document.getElementById('f-caption').value = caption;
+    document.getElementById('f-estado').value = 'rascunho';
+    showToast('Caption gerada! ✓');
+  } catch {
+    showToast('Erro ao gerar caption. Tenta novamente.');
+  }
+
+  document.getElementById('btn-gerar').style.display = 'inline-flex';
+  document.getElementById('ai-loading').style.display = 'none';
+}
+
+// ===================== RENDER =====================
+function renderAll() {
+  const activePage = document.querySelector('.page.active')?.id?.replace('page-', '');
+  if (activePage === 'dashboard') renderDashboard();
+  if (activePage === 'calendario') renderCalendario();
+  if (activePage === 'posts') renderPosts();
+  // Always refresh dashboard metrics silently
+  renderDashboard();
+}
+
+function renderDashboard() {
+  const total = posts.length;
+  const prontos = posts.filter(p => p.estado === 'pronto').length;
+  const publicados = posts.filter(p => p.estado === 'publicado').length;
+  const semCaption = posts.filter(p => !p.caption).length;
+
+  document.getElementById('dash-metrics').innerHTML = `
+    <div class="metric-card"><div class="metric-label">Total de posts</div><div class="metric-value">${total}</div></div>
+    <div class="metric-card green"><div class="metric-label">Prontos</div><div class="metric-value">${prontos}</div></div>
+    <div class="metric-card pink"><div class="metric-label">Publicados</div><div class="metric-value">${publicados}</div></div>
+    <div class="metric-card amber"><div class="metric-label">Sem caption</div><div class="metric-value">${semCaption}</div></div>
+  `;
+
+  const hoje = new Date().toISOString().slice(0, 10);
+  const proximos = posts
+    .filter(p => (p.data >= hoje) && p.estado !== 'publicado')
+    .sort((a, b) => a.data.localeCompare(b.data))
+    .slice(0, 6);
+
+  const cont = document.getElementById('dash-proximos');
+  if (proximos.length === 0) {
+    cont.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:16px 0;">Nenhum post agendado. Adiciona o primeiro!</div>';
+    return;
+  }
+  cont.innerHTML = proximos.map(p => `
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;flex-wrap:wrap;" onclick="verPost('${p.id}')">
+      <div style="min-width:70px;font-size:12px;color:var(--text-muted);">${p.data ? formatData(p.data) : '—'}</div>
+      <span class="post-type-badge type-${p.tipo}">${p.tipo}</span>
+      <div style="flex:1;font-size:13.5px;font-weight:500;min-width:120px;">${p.tema}</div>
+      <span class="status-badge status-${p.estado}" onclick="event.stopPropagation();ciclarEstado('${p.id}')">${estadoLabel(p.estado)}</span>
+    </div>
+  `).join('');
+}
+
+function renderCalendario() {
+  const hoje = new Date();
+  const inicioSemana = new Date(hoje);
+  const diaSemana = hoje.getDay() === 0 ? 6 : hoje.getDay() - 1;
+  inicioSemana.setDate(hoje.getDate() - diaSemana + calOffset * 7);
+
+  const dias = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+  const grid = document.getElementById('cal-grid');
+  const label = document.getElementById('cal-semana-label');
+  const fim = new Date(inicioSemana);
+  fim.setDate(inicioSemana.getDate() + 6);
+  label.textContent = `${formatDataCurta(inicioSemana)} – ${formatDataCurta(fim)}`;
+
+  grid.innerHTML = dias.map((dia, i) => {
+    const d = new Date(inicioSemana);
+    d.setDate(inicioSemana.getDate() + i);
+    const dStr = d.toISOString().slice(0, 10);
+    const hojeStr = new Date().toISOString().slice(0, 10);
+    const isHoje = dStr === hojeStr;
+    const dayPosts = posts.filter(p => p.data === dStr);
+    return `
+      <div class="cal-day ${isHoje ? 'today' : ''}">
+        <div class="cal-day-label">${dia}</div>
+        <div class="cal-day-num">${d.getDate()}</div>
+        ${dayPosts.map(p => `<span class="cal-post-chip post-type-badge type-${p.tipo}" onclick="verPost('${p.id}')" title="${p.tema}">${p.tema}</span>`).join('')}
+        <div style="margin-top:6px;"><span style="font-size:10px;color:var(--text-muted);cursor:pointer;" onclick="openNovoPost('${dStr}')">+ post</span></div>
+      </div>
+    `;
+  }).join('');
+}
+
+function navegarSemana(dir) {
+  calOffset += dir;
+  renderCalendario();
+}
+
+function filtrarPosts(estado) {
+  filtroAtual = estado;
+  renderPosts();
+}
+
+function renderPosts() {
+  const grid = document.getElementById('posts-grid');
+  let lista = [...posts].sort((a, b) => (a.data || '9').localeCompare(b.data || '9'));
+  if (filtroAtual) lista = lista.filter(p => p.estado === filtroAtual);
+
+  if (lista.length === 0) {
+    grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🍪</div><p>Nenhum post ainda. Começa por adicionar um!</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = lista.map(p => `
+    <div class="post-card">
+      <div class="post-card-header">
+        <div class="post-date">${p.data ? formatData(p.data) : 'Sem data'}</div>
+        <span class="post-type-badge type-${p.tipo}">${p.tipo}</span>
+      </div>
+      <div class="post-card-body">
+        <div class="post-tema">${p.tema}</div>
+        ${p.descricao ? `<div class="post-descricao">${p.descricao}</div>` : ''}
+        <div class="post-caption-box ${p.caption ? '' : 'empty'}">${p.caption || 'Sem caption ainda.'}</div>
+      </div>
+      <div class="post-card-footer">
+        <button class="status-badge status-${p.estado}" onclick="ciclarEstado('${p.id}')">${estadoLabel(p.estado)}</button>
+        <div class="post-actions">
+          <button class="btn btn-ghost btn-sm" onclick="verPost('${p.id}')">Ver</button>
+          <button class="btn btn-ghost btn-sm" onclick="openEditarPost('${p.id}')">✏️</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ===================== UTILS =====================
+function estadoLabel(e) {
+  return { ideia: '💡 Ideia', rascunho: '✏️ Rascunho', pronto: '✅ Pronto', publicado: '🚀 Publicado' }[e] || e;
+}
+
+function formatData(str) {
+  if (!str) return '';
+  const [y, m, d] = str.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function formatDataCurta(d) {
+  return `${d.getDate()} ${['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][d.getMonth()]}`;
+}
+
+function gerarId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ===================== INIT =====================
+async function init() {
+  const ok = await carregarPosts();
+
+  // Se não há posts, pré-carregar a semana planeada
+  if (ok && posts.length === 0) {
+    posts = [
+      { id: gerarId(), data: '2026-06-15', tipo: 'carrossel', tema: 'Recap Odivelas a Mexer', descricao: 'Primeira vez em Odivelas, evento correu bem, fotos do stand e cookies', caption: 'Odivelas a Mexer? Nós mexemos com Odivelas. 🍪\n\nFoi a nossa primeira vez num evento na zona onde a TCC nasceu e cresceu — e há qualquer coisa muito especial em partilhar o que fazemos com as pessoas de casa. 🏠\n\nObrigada a todos os que pararam, provaram e nos deram um bocadinho do vosso fim de semana. Não sabem o quanto isso significa para nós — mesmo que fosse difícil agradecer com a boca cheia. 😂🤍\n\nEstamos só a começar. E estamos muito felizes por começar aqui.\n\n👇 Encomendas no link da bio.\n\n#thecustardcookies #odivelasameXer #odivelas #cookies #fezemportugal', estado: 'pronto', notas: 'Fotos do stand e cookies do evento', criadoEm: Date.now() },
+      { id: gerarId(), data: '2026-06-17', tipo: 'reels', tema: 'Cookie do Mês: Cornetto de Morango', descricao: 'Apresentação do sabor de junho — cornetto de morango, veraneio e frescura', caption: '', estado: 'ideia', notas: 'Precisa de vídeo/fotos com close-up do recheio', criadoEm: Date.now() },
+      { id: gerarId(), data: '2026-06-19', tipo: 'imagem', tema: 'Teaser da Loja — Quase lá', descricao: 'Obras quase concluídas, criar antecipação sem revelar tudo', caption: '', estado: 'ideia', notas: 'Foto desfocada ou pormenor da loja. Pode ser de telemóvel.', criadoEm: Date.now() },
+      { id: gerarId(), data: '2026-06-21', tipo: 'carrossel', tema: 'Conteúdo de comunidade', descricao: 'Post leve de fim de semana, pergunta à comunidade ou bastidores', caption: '', estado: 'ideia', notas: '', criadoEm: Date.now() },
+    ];
+    await guardarRemoto();
+  }
+
+  renderAll();
+  document.getElementById('loading-screen').style.display = 'none';
+}
+
+init();
+</script>
+</body>
+</html>
